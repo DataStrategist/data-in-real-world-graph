@@ -82,8 +82,8 @@ exports.handler = async (event) => {
   // MATCH (n) OPTIONAL MATCH (n)-[r]-() RETURN n, r;
   //
   // Public endpoints must be bounded to avoid timeouts/DoS.
-  const NODE_LIMIT = Math.min(Number(process.env.NODE_LIMIT || 200), 300);
-  const ROW_LIMIT = Math.min(Number(process.env.ROW_LIMIT || 1200), 2000);
+  const NODE_LIMIT = Math.min(parseInt(process.env.NODE_LIMIT || '200', 10), 300);
+  const ROW_LIMIT = Math.min(parseInt(process.env.ROW_LIMIT || '1200', 10), 2000);
 
   const cypher = `
     MATCH (n)
@@ -99,8 +99,8 @@ exports.handler = async (event) => {
 
   try {
     const result = await session.run(cypher, {
-      nodeLimit: NODE_LIMIT,
-      rowLimit: ROW_LIMIT
+      nodeLimit: neo4j.int(NODE_LIMIT),
+      rowLimit: neo4j.int(ROW_LIMIT)
     });
 
     const nodes = new Map();

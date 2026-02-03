@@ -1,0 +1,7 @@
+{
+  "name": "neo4j-graph-site",
+  "private": true,
+  "dependencies": {
+    "neo4j-driver": "^5.28.0"
+  }
+}

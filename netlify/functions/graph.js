@@ -133,8 +133,9 @@ exports.handler = async (event) => {
     for (const record of result.records) {
       const n = record.get("n");
       const r = record.get("r");
-      if (n?.identity) nodes.set(String(n.identity), nodeToVis(n));
-      if (r?.identity) {
+      // Use explicit null/undefined checks - Neo4J objects can be falsy even when not null!
+      if (n !== null && n !== undefined && n.identity) nodes.set(String(n.identity), nodeToVis(n));
+      if (r !== null && r !== undefined && r.identity) {
         console.log(`Processing relationship: ${r.type}, identity: ${r.identity}, start: ${r.start}, end: ${r.end}`);
         edges.set(String(r.identity), relToVis(r));
       }

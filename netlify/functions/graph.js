@@ -70,17 +70,21 @@ function nodeToVis(n) {
     title += `\n• Track: ${props.track}`;
   }
   
-  // Add URL for videos (shown as text - browser may auto-link)
-  if (props.url) {
-    title += `\n\n🔗 ${props.url}`;
+  // Add URL for videos (shown as text)
+  if (props.linkedin_url || props.url) {
+    title += `\n\n🔗 ${props.linkedin_url || props.url}`;
   }
   
-  // Add metrics for videos
-  if (props.impressions || props.reactions || props.reach) {
+  // Add metrics for videos (handle different time period suffixes)
+  const impressions = props.impressions_7day || props.impressions_1day || props.impressions;
+  const reactions = props.reactions_7day || props.reactions_1day || props.reactions;
+  const reach = props.reach_7day || props.reach_1day || props.reach;
+  
+  if (impressions || reactions || reach) {
     title += `\n`;
-    if (props.impressions) title += `\n👁️  ${props.impressions.toLocaleString()} impressions`;
-    if (props.reactions) title += `\n❤️  ${props.reactions} reactions`;
-    if (props.reach) title += `\n📊 ${props.reach.toLocaleString()} reach`;
+    if (impressions) title += `\n👁️  ${impressions.toLocaleString()} impressions`;
+    if (reactions) title += `\n❤️  ${reactions} reactions`;
+    if (reach) title += `\n📊 ${reach.toLocaleString()} reach`;
   }
   
   // Add publication date for videos

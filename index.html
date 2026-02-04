@@ -18,6 +18,7 @@
     <button id="fit">Fit</button>
     <button id="physics">Physics: on</button>
     <button id="reload">Reload</button>
+    <button id="share">Share</button>
     <span id="status"></span>
   </header>
   <div id="network"></div>
@@ -86,8 +87,6 @@
 
         // Enable highlight nearest - dims non-connected nodes when selecting
         let highlightActive = false;
-        let nodesDataset = nodes;
-        let edgesDataset = edges;
 
         function highlightNearest(selectedNodes) {
           if (selectedNodes.length > 0) {
@@ -97,7 +96,7 @@
             const connectedEdges = network.getConnectedEdges(nodeId);
             
             // Update all nodes
-            const allNodes = nodesDataset.get({ returnType: "Object" });
+            const allNodes = nodes.get({ returnType: "Object" });
             const updateArray = [];
             for (let id in allNodes) {
               if (id === nodeId || connectedNodes.indexOf(id) !== -1) {
@@ -106,10 +105,10 @@
                 updateArray.push({ id, opacity: 0.15, color: 'rgba(200,200,200,0.5)' });
               }
             }
-            nodesDataset.update(updateArray);
+            nodes.update(updateArray);
 
             // Update edges
-            const allEdges = edgesDataset.get({ returnType: "Object" });
+            const allEdges = edges.get({ returnType: "Object" });
             const edgeUpdateArray = [];
             for (let id in allEdges) {
               if (connectedEdges.indexOf(id) !== -1) {
@@ -118,16 +117,16 @@
                 edgeUpdateArray.push({ id, color: { opacity: 0.05 } });
               }
             }
-            edgesDataset.update(edgeUpdateArray);
+            edges.update(edgeUpdateArray);
           } else if (highlightActive) {
             // Restore all nodes and edges
-            const allNodes = nodesDataset.get({ returnType: "Object" });
+            const allNodes = nodes.get({ returnType: "Object" });
             const updateArray = Object.keys(allNodes).map(id => ({ id, opacity: 1, color: undefined }));
-            nodesDataset.update(updateArray);
+            nodes.update(updateArray);
 
-            const allEdges = edgesDataset.get({ returnType: "Object" });
+            const allEdges = edges.get({ returnType: "Object" });
             const edgeUpdateArray = Object.keys(allEdges).map(id => ({ id, color: { opacity: 0.6 } }));
-            edgesDataset.update(edgeUpdateArray);
+            edges.update(edgeUpdateArray);
             
             highlightActive = false;
           }
@@ -162,7 +161,36 @@
       if (network) network.setOptions({ physics: { enabled: physicsOn } });
     });
 
-    document.getElementById("reload").addEventListener("click", () => loadGraph().catch(e => statusEl.textContent = `Error: ${e.message}`));
+    document.getElementById("reload").addEventListener("click", () => {
+      // Bypass both client cache and Netlify function cache by forcing fresh data
+      statusEl.textContent = "Reloading from database...";
+      loadGraph().catch(e => statusEl.textContent = `Error: ${e.message}`);
+    });
+
+    document.getElementById("share").addEventListener("click", async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Data in the Real World - Knowledge Graph',
+            text: 'Interactive knowledge graph of data management concepts from LinkedIn video series',
+            url: window.location.href
+          });
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            statusEl.textContent = 'Share failed';
+          }
+        }
+      } else {
+        // Fallback: copy URL to clipboard
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          statusEl.textContent = 'Link copied to clipboard!';
+          setTimeout(() => statusEl.textContent = '', 2000);
+        } catch (err) {
+          statusEl.textContent = 'Share not supported';
+        }
+      }
+    });
 
     loadGraph().catch(e => statusEl.textContent = `Error: ${e.message}`);
   </script>

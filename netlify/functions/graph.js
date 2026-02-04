@@ -112,12 +112,7 @@ exports.handler = async (event) => {
   const ROW_LIMIT = Math.min(parseInt(process.env.ROW_LIMIT || '1200', 10), 2000);
 
   const cypher = `
-    MATCH (n)
-    WITH n LIMIT $nodeLimit
-    WITH collect(n) as nodes
-    UNWIND nodes as n
-    OPTIONAL MATCH (n)-[r]-(m)
-    WHERE m IN nodes
+    MATCH (n)-[r]-(m)
     RETURN n, r
     LIMIT $rowLimit
   `;

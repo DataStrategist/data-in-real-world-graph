@@ -40,14 +40,41 @@
       );
 
       const options = {
-        physics: { enabled: physicsOn, stabilization: { iterations: 200 } },
-        interaction: { hover: true },
-        edges: { smooth: { type: 'continuous' }, arrows: { to: { enabled: true, scaleFactor: 0.5 } } },
+        physics: { 
+          enabled: physicsOn,
+          solver: 'repulsion',
+          repulsion: {
+            nodeDistance: 200,
+            centralGravity: 0.1,
+            springLength: 200,
+            springConstant: 0.05
+          },
+          stabilization: { 
+            iterations: 300,
+            updateInterval: 25
+          }
+        },
+        interaction: { 
+          hover: true,
+          navigationButtons: true,
+          keyboard: true,
+          tooltipDelay: 100,
+          hideEdgesOnDrag: true,
+          hideEdgesOnZoom: true
+        },
+        edges: { 
+          smooth: { type: 'continuous' }, 
+          arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+          color: { inherit: 'both', opacity: 0.6 },
+          width: 1
+        },
         nodes: { 
           shape: 'box',
           margin: 10,
           widthConstraint: { maximum: 200 },
-          font: { size: 12, face: 'system-ui, sans-serif', multi: 'html', bold: { size: 14 } }
+          font: { size: 12, face: 'system-ui, sans-serif', multi: 'html', bold: { size: 14 } },
+          borderWidth: 2,
+          borderWidthSelected: 4
         }
       };
 
@@ -55,6 +82,59 @@
 
       if (!network) {
         network = new vis.Network(container, { nodes, edges }, options);
+
+        // Enable highlight nearest - dims non-connected nodes when selecting
+        let highlightActive = false;
+        let nodesDataset = nodes;
+        let edgesDataset = edges;
+
+        function highlightNearest(selectedNodes) {
+          if (selectedNodes.length > 0) {
+            highlightActive = true;
+            const nodeId = selectedNodes[0];
+            const connectedNodes = network.getConnectedNodes(nodeId);
+            const connectedEdges = network.getConnectedEdges(nodeId);
+            
+            // Update all nodes
+            const allNodes = nodesDataset.get({ returnType: "Object" });
+            const updateArray = [];
+            for (let id in allNodes) {
+              if (id === nodeId || connectedNodes.indexOf(id) !== -1) {
+                updateArray.push({ id, opacity: 1, color: undefined });
+              } else {
+                updateArray.push({ id, opacity: 0.15, color: 'rgba(200,200,200,0.5)' });
+              }
+            }
+            nodesDataset.update(updateArray);
+
+            // Update edges
+            const allEdges = edgesDataset.get({ returnType: "Object" });
+            const edgeUpdateArray = [];
+            for (let id in allEdges) {
+              if (connectedEdges.indexOf(id) !== -1) {
+                edgeUpdateArray.push({ id, color: { opacity: 1 } });
+              } else {
+                edgeUpdateArray.push({ id, color: { opacity: 0.05 } });
+              }
+            }
+            edgesDataset.update(edgeUpdateArray);
+          } else if (highlightActive) {
+            // Restore all nodes and edges
+            const allNodes = nodesDataset.get({ returnType: "Object" });
+            const updateArray = Object.keys(allNodes).map(id => ({ id, opacity: 1, color: undefined }));
+            nodesDataset.update(updateArray);
+
+            const allEdges = edgesDataset.get({ returnType: "Object" });
+            const edgeUpdateArray = Object.keys(allEdges).map(id => ({ id, color: { opacity: 0.6 } }));
+            edgesDataset.update(edgeUpdateArray);
+            
+            highlightActive = false;
+          }
+        }
+
+        network.on("click", (params) => {
+          highlightNearest(params.nodes);
+        });
 
         network.on("hoverEdge", (p) => {
           const edge = edges.get(p.edge);

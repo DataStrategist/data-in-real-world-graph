@@ -53,7 +53,46 @@ function nodeToVis(n) {
     label = lines.join('\n');
   }
   
-  return { id, label: String(label), group, ...props };
+  // Build rich tooltip with metadata
+  let title = `<div style="max-width: 300px; padding: 8px; font-family: system-ui, sans-serif;">`;
+  title += `<strong style="font-size: 14px;">${String(label).replace(/\n/g, ' ')}</strong><br/>`;
+  title += `<em style="color: #666; font-size: 11px;">${group}</em>`;
+  
+  // Add description if available
+  if (props.description) {
+    title += `<div style="margin-top: 8px; font-size: 12px; line-height: 1.4;">${props.description}</div>`;
+  }
+  
+  // Add category/track info
+  if (props.category) {
+    title += `<div style="margin-top: 6px; font-size: 11px;"><strong>Category:</strong> ${props.category}</div>`;
+  }
+  if (props.track) {
+    title += `<div style="font-size: 11px;"><strong>Track:</strong> ${props.track}</div>`;
+  }
+  
+  // Add clickable URL for videos
+  if (props.url) {
+    title += `<div style="margin-top: 8px;"><a href="${props.url}" target="_blank" style="color: #0066cc; text-decoration: none; font-size: 12px;">🔗 View on LinkedIn</a></div>`;
+  }
+  
+  // Add metrics for videos
+  if (props.impressions || props.reactions || props.reach) {
+    title += `<div style="margin-top: 8px; font-size: 11px; color: #555;">`;
+    if (props.impressions) title += `<span style="margin-right: 10px;">👁️ ${props.impressions.toLocaleString()} impressions</span>`;
+    if (props.reactions) title += `<span style="margin-right: 10px;">❤️ ${props.reactions} reactions</span>`;
+    if (props.reach) title += `<span>📊 ${props.reach.toLocaleString()} reach</span>`;
+    title += `</div>`;
+  }
+  
+  // Add publication date for videos
+  if (props.published_date) {
+    title += `<div style="margin-top: 6px; font-size: 11px; color: #888;">📅 ${props.published_date}</div>`;
+  }
+  
+  title += `</div>`;
+  
+  return { id, label: String(label), group, title, ...props };
 }
 
 function relToVis(r) {

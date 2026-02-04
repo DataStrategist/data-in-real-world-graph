@@ -42,7 +42,13 @@
       const options = {
         physics: { enabled: physicsOn, stabilization: { iterations: 200 } },
         interaction: { hover: true },
-        edges: { smooth: true }
+        edges: { smooth: { type: 'continuous' }, arrows: { to: { enabled: true, scaleFactor: 0.5 } } },
+        nodes: { 
+          shape: 'box',
+          margin: 10,
+          widthConstraint: { maximum: 200 },
+          font: { size: 12, face: 'system-ui, sans-serif', multi: 'html', bold: { size: 14 } }
+        }
       };
 
       const container = document.getElementById("network");

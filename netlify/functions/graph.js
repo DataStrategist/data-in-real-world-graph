@@ -32,15 +32,38 @@ function nodeToVis(n) {
   const labels = n.labels || [];
   const props = n.properties || {};
   const group = labels[0] || "Node";
-  const label = props.title || props.name || props.id || group;
+  let label = props.title || props.name || props.id || group;
+  
+  // Wrap long labels at word boundaries
+  if (typeof label === 'string' && label.length > 30) {
+    const words = label.split(' ');
+    let lines = [];
+    let currentLine = '';
+    
+    for (const word of words) {
+      if ((currentLine + ' ' + word).length > 30 && currentLine.length > 0) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = currentLine ? currentLine + ' ' + word : word;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+    label = lines.join('\n');
+  }
+  
   return { id, label: String(label), group, ...props };
 }
 
 function relToVis(r) {
+  // r.start and r.end are Neo4J Integer objects, need to convert properly
+  const fromId = r.start?.toNumber ? r.start.toNumber() : r.start;
+  const toId = r.end?.toNumber ? r.end.toNumber() : r.end;
+  
   return {
     id: String(r.identity),
-    from: String(r.start),
-    to: String(r.end),
+    from: String(fromId),
+    to: String(toId),
     type: r.type,
     label: r.type
   };

@@ -123,7 +123,6 @@ exports.handler = async (event) => {
 
   try {
     const result = await session.run(cypher, {
-      nodeLimit: neo4j.int(NODE_LIMIT),
       rowLimit: neo4j.int(ROW_LIMIT)
     });
 

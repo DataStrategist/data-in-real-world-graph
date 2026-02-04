@@ -58,12 +58,14 @@ function nodeToVis(n) {
 }
 
 function relToVis(r) {
-  // r.start and r.end are Neo4J Integer objects, need to convert properly
+  // Handle Neo4J Integer objects - they can be large so convert carefully
+  const relId = r.identity?.toNumber ? r.identity.toNumber() : r.identity;
   const fromId = r.start?.toNumber ? r.start.toNumber() : r.start;
   const toId = r.end?.toNumber ? r.end.toNumber() : r.end;
   
+  // Use string IDs to avoid Infinity issues with large integers
   return {
-    id: String(r.identity),
+    id: String(relId),
     from: String(fromId),
     to: String(toId),
     type: r.type,

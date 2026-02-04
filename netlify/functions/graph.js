@@ -28,9 +28,8 @@ function getDriver() {
 let cache = { ts: 0, payload: null };
 
 function nodeToVis(n) {
-  // Neo4J Integer objects can overflow JavaScript Number - convert directly to string
-  const nodeId = n.identity?.toString ? n.identity.toString() : String(n.identity);
-  const id = nodeId;
+  // Use elementId (string) instead of identity (Integer) to avoid conversion issues
+  const id = n.elementId || String(n.identity);
   const labels = n.labels || [];
   const props = n.properties || {};
   const group = labels[0] || "Node";
@@ -58,15 +57,15 @@ function nodeToVis(n) {
 }
 
 function relToVis(r) {
-  // Neo4J Integer objects can overflow JavaScript Number - convert directly to string
-  const relId = r.identity?.toString ? r.identity.toString() : String(r.identity);
-  const fromId = r.start?.toString ? r.start.toString() : String(r.start);
-  const toId = r.end?.toString ? r.end.toString() : String(r.end);
+  // Use elementId (string) instead of identity/start/end (Integer) to avoid conversion issues
+  const id = r.elementId || String(r.identity);
+  const from = r.startNodeElementId || String(r.start);
+  const to = r.endNodeElementId || String(r.end);
   
   return {
-    id: relId,
-    from: fromId,
-    to: toId,
+    id,
+    from,
+    to,
     type: r.type,
     label: r.type
   };
@@ -133,10 +132,14 @@ exports.handler = async (event) => {
       const n = record.get("n");
       const r = record.get("r");
       // Use explicit null/undefined checks - Neo4J objects can be falsy even when not null!
-      if (n !== null && n !== undefined && n.identity) nodes.set(String(n.identity), nodeToVis(n));
-      if (r !== null && r !== undefined && r.identity) {
-        console.log(`Processing relationship: ${r.type}, identity: ${r.identity}, start: ${r.start}, end: ${r.end}`);
-        edges.set(String(r.identity), relToVis(r));
+      if (n !== null && n !== undefined && (n.elementId || n.identity)) {
+        const nodeId = n.elementId || String(n.identity);
+        nodes.set(nodeId, nodeToVis(n));
+      }
+      if (r !== null && r !== undefined && (r.elementId || r.identity)) {
+        const relId = r.elementId || String(r.identity);
+        console.log(`Processing relationship: ${r.type}, elementId: ${r.elementId}, identity: ${r.identity}`);
+        edges.set(relId, relToVis(r));
       }
     }
     

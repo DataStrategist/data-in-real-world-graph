@@ -28,9 +28,9 @@ function getDriver() {
 let cache = { ts: 0, payload: null };
 
 function nodeToVis(n) {
-  // Handle Neo4J Integer objects consistently
-  const nodeId = n.identity?.toNumber ? n.identity.toNumber() : n.identity;
-  const id = String(nodeId);
+  // Neo4J Integer objects can overflow JavaScript Number - convert directly to string
+  const nodeId = n.identity?.toString ? n.identity.toString() : String(n.identity);
+  const id = nodeId;
   const labels = n.labels || [];
   const props = n.properties || {};
   const group = labels[0] || "Node";
@@ -58,16 +58,15 @@ function nodeToVis(n) {
 }
 
 function relToVis(r) {
-  // Handle Neo4J Integer objects - they can be large so convert carefully
-  const relId = r.identity?.toNumber ? r.identity.toNumber() : r.identity;
-  const fromId = r.start?.toNumber ? r.start.toNumber() : r.start;
-  const toId = r.end?.toNumber ? r.end.toNumber() : r.end;
+  // Neo4J Integer objects can overflow JavaScript Number - convert directly to string
+  const relId = r.identity?.toString ? r.identity.toString() : String(r.identity);
+  const fromId = r.start?.toString ? r.start.toString() : String(r.start);
+  const toId = r.end?.toString ? r.end.toString() : String(r.end);
   
-  // Use string IDs to avoid Infinity issues with large integers
   return {
-    id: String(relId),
-    from: String(fromId),
-    to: String(toId),
+    id: relId,
+    from: fromId,
+    to: toId,
     type: r.type,
     label: r.type
   };

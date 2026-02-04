@@ -134,8 +134,13 @@ exports.handler = async (event) => {
       const n = record.get("n");
       const r = record.get("r");
       if (n?.identity) nodes.set(String(n.identity), nodeToVis(n));
-      if (r?.identity) edges.set(String(r.identity), relToVis(r));
+      if (r?.identity) {
+        console.log(`Processing relationship: ${r.type}, identity: ${r.identity}, start: ${r.start}, end: ${r.end}`);
+        edges.set(String(r.identity), relToVis(r));
+      }
     }
+    
+    console.log(`Processed ${result.records.length} records, found ${nodes.size} nodes, ${edges.size} edges`);
 
     const payload = {
       generatedAt: new Date().toISOString(),

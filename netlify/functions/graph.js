@@ -138,13 +138,10 @@ exports.handler = async (event) => {
       }
       if (r !== null && r !== undefined && (r.elementId || r.identity)) {
         const relId = r.elementId || String(r.identity);
-        console.log(`Processing relationship: ${r.type}, elementId: ${r.elementId}, identity: ${r.identity}`);
         edges.set(relId, relToVis(r));
       }
     }
     
-    console.log(`Processed ${result.records.length} records, found ${nodes.size} nodes, ${edges.size} edges`);
-
     const payload = {
       generatedAt: new Date().toISOString(),
       limits: { nodeLimit: NODE_LIMIT, rowLimit: ROW_LIMIT },

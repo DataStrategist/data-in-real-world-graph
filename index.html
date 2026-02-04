@@ -34,9 +34,9 @@
 
       const nodes = new vis.DataSet(data.nodes);
 
-      // Store edge label but only show it on hover/selection
+      // Show edge labels permanently in lowercase
       const edges = new vis.DataSet(
-        data.edges.map(e => ({ ...e, label: "", _label: e.label }))
+        data.edges.map(e => ({ ...e, label: e.label.toLowerCase() }))
       );
 
       const options = {
@@ -66,7 +66,8 @@
           smooth: { type: 'continuous' }, 
           arrows: { to: { enabled: true, scaleFactor: 0.5 } },
           color: { inherit: 'both', opacity: 0.6 },
-          width: 1
+          width: 1,
+          font: { size: 10, align: 'middle', strokeWidth: 0, color: '#555' }
         },
         nodes: { 
           shape: 'box',
@@ -136,16 +137,6 @@
           highlightNearest(params.nodes);
         });
 
-        network.on("hoverEdge", (p) => {
-          const edge = edges.get(p.edge);
-          if (edge?._label) edges.update({ id: edge.id, label: edge._label });
-        });
-
-        network.on("blurEdge", (p) => {
-          const edge = edges.get(p.edge);
-          if (edge) edges.update({ id: edge.id, label: "" });
-        });
-
         network.on("selectNode", (p) => {
           const node = nodes.get(p.nodes[0]);
           statusEl.textContent = node ? `${node.label} (${node.group})` : "";
@@ -153,7 +144,7 @@
 
         network.on("selectEdge", (p) => {
           const edge = edges.get(p.edges[0]);
-          statusEl.textContent = edge ? `Edge: ${edge._label || edge.type}` : "";
+          statusEl.textContent = edge ? `Edge: ${edge.label || edge.type}` : "";
         });
       } else {
         network.setData({ nodes, edges });

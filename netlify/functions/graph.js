@@ -53,44 +53,40 @@ function nodeToVis(n) {
     label = lines.join('\n');
   }
   
-  // Build rich tooltip with metadata
-  let title = `<div style="max-width: 300px; padding: 8px; font-family: system-ui, sans-serif;">`;
-  title += `<strong style="font-size: 14px;">${String(label).replace(/\n/g, ' ')}</strong><br/>`;
-  title += `<em style="color: #666; font-size: 11px;">${group}</em>`;
+  // Build rich tooltip with metadata (plain text format - HTML not supported by vis-network)
+  let title = `${String(label).replace(/\n/g, ' ')}\n`;
+  title += `[${group}]\n`;
   
   // Add description if available
   if (props.description) {
-    title += `<div style="margin-top: 8px; font-size: 12px; line-height: 1.4;">${props.description}</div>`;
+    title += `\n${props.description}\n`;
   }
   
   // Add category/track info
   if (props.category) {
-    title += `<div style="margin-top: 6px; font-size: 11px;"><strong>Category:</strong> ${props.category}</div>`;
+    title += `\n• Category: ${props.category}`;
   }
   if (props.track) {
-    title += `<div style="font-size: 11px;"><strong>Track:</strong> ${props.track}</div>`;
+    title += `\n• Track: ${props.track}`;
   }
   
-  // Add clickable URL for videos
+  // Add URL for videos (shown as text - browser may auto-link)
   if (props.url) {
-    title += `<div style="margin-top: 8px;"><a href="${props.url}" target="_blank" style="color: #0066cc; text-decoration: none; font-size: 12px;">🔗 View on LinkedIn</a></div>`;
+    title += `\n\n🔗 ${props.url}`;
   }
   
   // Add metrics for videos
   if (props.impressions || props.reactions || props.reach) {
-    title += `<div style="margin-top: 8px; font-size: 11px; color: #555;">`;
-    if (props.impressions) title += `<span style="margin-right: 10px;">👁️ ${props.impressions.toLocaleString()} impressions</span>`;
-    if (props.reactions) title += `<span style="margin-right: 10px;">❤️ ${props.reactions} reactions</span>`;
-    if (props.reach) title += `<span>📊 ${props.reach.toLocaleString()} reach</span>`;
-    title += `</div>`;
+    title += `\n`;
+    if (props.impressions) title += `\n👁️  ${props.impressions.toLocaleString()} impressions`;
+    if (props.reactions) title += `\n❤️  ${props.reactions} reactions`;
+    if (props.reach) title += `\n📊 ${props.reach.toLocaleString()} reach`;
   }
   
   // Add publication date for videos
   if (props.published_date) {
-    title += `<div style="margin-top: 6px; font-size: 11px; color: #888;">📅 ${props.published_date}</div>`;
+    title += `\n📅 ${props.published_date}`;
   }
-  
-  title += `</div>`;
   
   return { id, label: String(label), group, title, ...props };
 }

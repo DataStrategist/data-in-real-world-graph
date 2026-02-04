@@ -28,7 +28,9 @@ function getDriver() {
 let cache = { ts: 0, payload: null };
 
 function nodeToVis(n) {
-  const id = String(n.identity);
+  // Handle Neo4J Integer objects consistently
+  const nodeId = n.identity?.toNumber ? n.identity.toNumber() : n.identity;
+  const id = String(nodeId);
   const labels = n.labels || [];
   const props = n.properties || {};
   const group = labels[0] || "Node";
@@ -111,7 +113,10 @@ exports.handler = async (event) => {
   const cypher = `
     MATCH (n)
     WITH n LIMIT $nodeLimit
-    OPTIONAL MATCH (n)-[r]-()
+    WITH collect(n) as nodes
+    UNWIND nodes as n
+    OPTIONAL MATCH (n)-[r]-(m)
+    WHERE m IN nodes
     RETURN n, r
     LIMIT $rowLimit
   `;

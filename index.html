@@ -6,11 +6,49 @@
   <title>Graph</title>
   <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
   <style>
-    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-    header { height: 52px; display: flex; gap: 10px; align-items: center; padding: 0 14px; border-bottom: 1px solid #eee; }
-    #network { height: calc(100vh - 52px); }
-    button { padding: 8px 10px; }
-    #status { opacity: 0.8; }
+    body { 
+      margin: 0; 
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; 
+      background: #f8f9fa;
+    }
+    header { 
+      height: 60px; 
+      display: flex; 
+      gap: 12px; 
+      align-items: center; 
+      padding: 0 20px; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    #network { height: calc(100vh - 60px); }
+    button { 
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      background: rgba(255,255,255,0.9);
+      color: #667eea;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button:hover {
+      background: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    #status { 
+      opacity: 0.9;
+      color: white;
+      font-size: 13px;
+      margin-left: auto;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>

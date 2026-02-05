@@ -33,6 +33,19 @@ function nodeToVis(n) {
   const labels = n.labels || [];
   const props = n.properties || {};
   const group = labels[0] || "Node";
+  
+  // DEBUG: Log Video nodes to see what properties we're getting
+  if (group === 'Video') {
+    console.log('Video node:', {
+      id,
+      labels,
+      allProps: props,
+      hasLinkedinUrl: !!props.linkedin_url,
+      hasNumber: !!props.number,
+      hasPublishedDate: !!props.published_date
+    });
+  }
+  
   let label = props.title || props.name || props.id || group;
   
   // Wrap long labels at word boundaries
@@ -54,45 +67,62 @@ function nodeToVis(n) {
   }
   
   // Build rich tooltip with metadata (plain text format - HTML not supported by vis-network)
-  let title = `${String(label).replace(/\n/g, ' ')}\n`;
-  title += `[${group}]\n`;
+  // Use 'tooltip' variable name to avoid collision with props.title in Video nodes
+  let tooltip = `${String(label).replace(/\n/g, ' ')}\n`;
+  tooltip += `[${group}]\n`;
   
   // Add description if available
   if (props.description) {
-    title += `\n${props.description}\n`;
+    tooltip += `\n${props.description}\n`;
   }
   
   // Add category/track info
   if (props.category) {
-    title += `\n• Category: ${props.category}`;
+    tooltip += `\n• Category: ${props.category}`;
   }
   if (props.track) {
-    title += `\n• Track: ${props.track}`;
+    tooltip += `\n• Track: ${props.track}`;
+  }
+  
+  // Add VideoSeries metadata
+  if (props.platform) {
+    tooltip += `\n• Platform: ${props.platform}`;
+  }
+  if (props.total_videos) {
+    tooltip += `\n• Total Videos: ${props.total_videos}`;
+  }
+  if (props.published_count) {
+    tooltip += `\n• Published: ${props.published_count}`;
+  }
+  if (props.status) {
+    tooltip += `\n• Status: ${props.status}`;
+  }
+  
+  // Add publication date for videos first
+  if (props.published_date) {
+    tooltip += `\n📅 ${props.published_date}`;
   }
   
   // Add URL for videos (shown as text)
   if (props.linkedin_url || props.url) {
-    title += `\n\n🔗 ${props.linkedin_url || props.url}`;
+    tooltip += `\n🔗 ${props.linkedin_url || props.url}`;
   }
   
   // Add metrics for videos (handle different time period suffixes)
   const impressions = props.impressions_7day || props.impressions_1day || props.impressions;
   const reactions = props.reactions_7day || props.reactions_1day || props.reactions;
   const reach = props.reach_7day || props.reach_1day || props.reach;
+  const comments = props.comments_7day || props.comments_1day || props.comments;
   
-  if (impressions || reactions || reach) {
-    title += `\n`;
-    if (impressions) title += `\n👁️  ${impressions.toLocaleString()} impressions`;
-    if (reactions) title += `\n❤️  ${reactions} reactions`;
-    if (reach) title += `\n📊 ${reach.toLocaleString()} reach`;
+  if (impressions || reactions || reach || comments) {
+    tooltip += `\n`;
+    if (impressions) tooltip += `\n👁️  ${impressions.toLocaleString()} impressions`;
+    if (reach) tooltip += `\n📊 ${reach.toLocaleString()} reach`;
+    if (reactions) tooltip += `\n❤️  ${reactions} reactions`;
+    if (comments) tooltip += `\n💬 ${comments} comments`;
   }
   
-  // Add publication date for videos
-  if (props.published_date) {
-    title += `\n📅 ${props.published_date}`;
-  }
-  
-  return { id, label: String(label), group, title, ...props };
+  return { id, label: String(label), group, title: tooltip, ...props };
 }
 
 function relToVis(r) {
@@ -150,8 +180,9 @@ exports.handler = async (event) => {
   const ROW_LIMIT = Math.min(parseInt(process.env.ROW_LIMIT || '1200', 10), 2000);
 
   const cypher = `
-    MATCH (n)-[r]-(m)
-    RETURN n, r
+    MATCH (n)
+    OPTIONAL MATCH (n)-[r]-(m)
+    RETURN n, r, m
     LIMIT $rowLimit
   `;
 
@@ -170,10 +201,16 @@ exports.handler = async (event) => {
     for (const record of result.records) {
       const n = record.get("n");
       const r = record.get("r");
+      const m = record.get("m");
+      
       // Use explicit null/undefined checks - Neo4J objects can be falsy even when not null!
       if (n !== null && n !== undefined && (n.elementId || n.identity)) {
         const nodeId = n.elementId || String(n.identity);
         nodes.set(nodeId, nodeToVis(n));
+      }
+      if (m !== null && m !== undefined && (m.elementId || m.identity)) {
+        const nodeId = m.elementId || String(m.identity);
+        nodes.set(nodeId, nodeToVis(m));
       }
       if (r !== null && r !== undefined && (r.elementId || r.identity)) {
         const relId = r.elementId || String(r.identity);
@@ -181,11 +218,23 @@ exports.handler = async (event) => {
       }
     }
     
+    // DEBUG: Get raw Video node data to see what properties we're receiving
+    const videoNodes = Array.from(nodes.values()).filter(n => n.group === 'Video');
+    const debugInfo = videoNodes.map(v => ({
+      label: v.label,
+      group: v.group,
+      has_linkedin_url: !!v.linkedin_url,
+      has_number: !!v.number,
+      has_published_date: !!v.published_date,
+      all_keys: Object.keys(v)
+    }));
+    
     const payload = {
       generatedAt: new Date().toISOString(),
       limits: { nodeLimit: NODE_LIMIT, rowLimit: ROW_LIMIT },
       nodes: Array.from(nodes.values()),
-      edges: Array.from(edges.values())
+      edges: Array.from(edges.values()),
+      debug_video_nodes: debugInfo // TEMPORARY DEBUG
     };
 
     cache = { ts: now, payload };

@@ -4,6 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Graph</title>
+  
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-L1CMY6YVS7"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-L1CMY6YVS7');
+  </script>
+  
   <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
   <style>
     body { 
@@ -12,7 +22,7 @@
       background: #f8f9fa;
     }
     header { 
-      height: 60px; 
+      height: 70px; 
       display: flex; 
       gap: 12px; 
       align-items: center; 
@@ -20,7 +30,43 @@
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    #network { height: calc(100vh - 60px); }
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: white;
+      margin-right: auto;
+    }
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 12px;
+      }
+      header {
+        padding: 0 8px;
+        gap: 4px;
+        height: 60px;
+      }
+      button {
+        padding: 8px 10px;
+        font-size: 16px;
+        min-width: auto;
+      }
+      button span {
+        display: none;
+      }
+      #physics {
+        display: none;
+      }
+      #search {
+        padding: 6px 8px;
+        font-size: 12px;
+        min-width: 100px;
+      }
+      #status {
+        display: none;
+      }
+    }
+    #network { height: calc(100vh - 70px); }
     button { 
       padding: 10px 18px;
       border: none;
@@ -42,31 +88,119 @@
       transform: translateY(0);
       box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
+    #search {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      background: rgba(255,255,255,0.9);
+      color: #667eea;
+      cursor: pointer;
+      min-width: 140px;
+      max-width: 180px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    #search:hover {
+      background: white;
+    }
     #status { 
-      opacity: 0.9;
-      color: white;
-      font-size: 13px;
-      margin-left: auto;
-      font-weight: 500;
+      display: none;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+    }
+    .modal-content {
+      background: white;
+      margin: 10% auto;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 600px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    @media (max-width: 768px) {
+      .modal-content {
+        margin: 5% auto;
+        padding: 20px;
+        max-height: 85vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+    .modal-content h2 {
+      margin-top: 0;
+      color: #667eea;
+    }
+    .modal-content p {
+      line-height: 1.6;
+      color: #555;
+    }
+    .close {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #aaa;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .close:hover {
+      color: #667eea;
     }
   </style>
 </head>
 <body>
   <header>
-    <button id="fit">Fit</button>
-    <button id="physics">Physics: on</button>
-    <button id="reload">Reload</button>
-    <button id="share">Share</button>
+    <h1>Data in the Real World</h1>
+    <button id="linkedinBtn" style="display: none; background: #FFD97D; color: #333; font-weight: 600;">🔗<span> View Video</span></button>
+    <select id="search">
+      <option value="">Search nodes...</option>
+    </select>
+    <button id="info">ℹ️<span> Info</span></button>
+    <button id="physics">⚡<span> Physics: on</span></button>
+    <button id="share">↗️<span> Share</span></button>
     <span id="status"></span>
   </header>
   <div id="network"></div>
+  
+  <div id="infoModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>About This Knowledge Graph</h2>
+      <p>This interactive visualization maps concepts from the <strong>"Data in the Real World"</strong> LinkedIn video series - a 52-week exploration of data management, organizational dysfunction, and AI strategy.</p>
+      <p><strong>How to use:</strong></p>
+      <ul>
+        <li><strong>Hover</strong> over nodes to see detailed metadata</li>
+        <li><strong>Click</strong> a node to highlight its connections</li>
+        <li><strong>Click a Video node (yellow)</strong> to reveal a 🔗 View Video button in the header - click it to open the LinkedIn post</li>
+        <li><strong>Search</strong> to quickly find specific topics or videos</li>
+        <li><strong>Physics</strong> toggle controls automatic layout adjustments</li>
+      </ul>
+      <p><strong>Node types:</strong></p>
+      <ul>
+        <li><strong>Video</strong> - Published episodes with LinkedIn links</li>
+        <li><strong>Topic</strong> - Concepts, problems, principles, and solutions</li>
+        <li><strong>Track</strong> - Content categories (A: tactical, B: governance, C: AI)</li>
+        <li><strong>VideoSeries</strong> - The overarching series metadata</li>
+      </ul>
+      <p>Built with Neo4J, Netlify, and vis-network. <a href="https://www.linkedin.com/in/amitkohli1/" target="_blank" style="color: #667eea;">LinkedIn</a> • <a href="https://github.com/DataStrategist/linkedin_talks_kg" target="_blank" style="color: #667eea;">GitHub</a></p>
+    </div>
+  </div>
 
   <script>
     const statusEl = document.getElementById("status");
     let network, physicsOn = true;
 
     async function loadGraph() {
-      statusEl.textContent = "Loading…";
       const res = await fetch("/.netlify/functions/graph", { cache: "no-store" });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
@@ -77,6 +211,16 @@
       const edges = new vis.DataSet(
         data.edges.map(e => ({ ...e, label: e.label.toLowerCase() }))
       );
+      
+      // Populate search dropdown
+      const searchSelect = document.getElementById("search");
+      searchSelect.innerHTML = '<option value="">Search nodes...</option>';
+      data.nodes.forEach(node => {
+        const option = document.createElement("option");
+        option.value = node.id;
+        option.textContent = `${node.label} (${node.group})`;
+        searchSelect.appendChild(option);
+      });
 
       const options = {
         physics: { 
@@ -172,37 +316,60 @@
 
         network.on("click", (params) => {
           highlightNearest(params.nodes);
+          if (params.nodes.length === 0) {
+            document.getElementById("linkedinBtn").style.display = 'none';
+          }
         });
 
         network.on("selectNode", (p) => {
           const node = nodes.get(p.nodes[0]);
-          statusEl.textContent = node ? `${node.label} (${node.group})` : "";
-        });
-
-        network.on("selectEdge", (p) => {
-          const edge = edges.get(p.edges[0]);
-          statusEl.textContent = edge ? `Edge: ${edge.label || edge.type}` : "";
+          const linkedinBtn = document.getElementById("linkedinBtn");
+          if (node) {
+            if (node.group === 'Video' && node.linkedin_url) {
+              linkedinBtn.style.display = 'block';
+              linkedinBtn.onclick = () => window.open(node.linkedin_url, '_blank');
+            } else {
+              linkedinBtn.style.display = 'none';
+            }
+          }
         });
       } else {
         network.setData({ nodes, edges });
         network.setOptions(options);
       }
 
-      statusEl.textContent = `Loaded: ${data.nodes.length} nodes, ${data.edges.length} edges • ${data.generatedAt}`;
+      // DEBUG: Show video node info in console
+      if (data.debug_video_nodes) {
+        console.log('=== VIDEO NODES DEBUG ===');
+        console.log(data.debug_video_nodes);
+        console.log('=== RAW VIDEO NODES ===');
+        console.log(data.nodes.filter(n => n.group === 'Video'));
+      }
     }
 
-    document.getElementById("fit").addEventListener("click", () => network && network.fit({ animation: true }));
+    // Info modal handlers
+    const modal = document.getElementById("infoModal");
+    const infoBtn = document.getElementById("info");
+    const closeBtn = document.getElementsByClassName("close")[0];
+    
+    infoBtn.addEventListener("click", () => modal.style.display = "block");
+    closeBtn.addEventListener("click", () => modal.style.display = "none");
+    window.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
+
+    // Search functionality
+    document.getElementById("search").addEventListener("change", (e) => {
+      const nodeId = e.target.value;
+      if (nodeId && network) {
+        network.selectNodes([nodeId]);
+        network.focus(nodeId, { scale: 1.5, animation: true });
+      }
+    });
 
     document.getElementById("physics").addEventListener("click", () => {
       physicsOn = !physicsOn;
-      document.getElementById("physics").textContent = `Physics: ${physicsOn ? "on" : "off"}`;
+      const btn = document.getElementById("physics");
+      btn.innerHTML = `⚡<span> Physics: ${physicsOn ? "on" : "off"}</span>`;
       if (network) network.setOptions({ physics: { enabled: physicsOn } });
-    });
-
-    document.getElementById("reload").addEventListener("click", () => {
-      // Bypass both client cache and Netlify function cache by forcing fresh data
-      statusEl.textContent = "Reloading from database...";
-      loadGraph().catch(e => statusEl.textContent = `Error: ${e.message}`);
     });
 
     document.getElementById("share").addEventListener("click", async () => {
@@ -230,7 +397,7 @@
       }
     });
 
-    loadGraph().catch(e => statusEl.textContent = `Error: ${e.message}`);
+    loadGraph().catch(e => console.error('Graph load error:', e.message));
   </script>
 </body>
 </html>

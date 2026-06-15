@@ -212,14 +212,31 @@
         data.edges.map(e => ({ ...e, label: e.label.toLowerCase() }))
       );
       
-      // Populate search dropdown
+      // Populate search dropdown: Videos first (by number), Topics alphabetically, others after
       const searchSelect = document.getElementById("search");
       searchSelect.innerHTML = '<option value="">Search nodes...</option>';
-      data.nodes.forEach(node => {
+      const groupOrder = { 'Video': 0, 'Topic': 1, 'Track': 2, 'VideoSeries': 3 };
+      const sortedForSearch = [...data.nodes].sort((a, b) => {
+        const ga = groupOrder[a.group] ?? 4;
+        const gb = groupOrder[b.group] ?? 4;
+        if (ga !== gb) return ga - gb;
+        if (a.group === 'Video') return (a.number || 0) - (b.number || 0);
+        return (a.name || a.label || '').localeCompare(b.name || b.label || '');
+      });
+      let currentOptgroup = null;
+      let currentGroup = null;
+      sortedForSearch.forEach(node => {
+        if (node.group !== currentGroup) {
+          currentGroup = node.group;
+          currentOptgroup = document.createElement("optgroup");
+          const groupLabel = node.group === 'Video' ? '📹 Videos' : node.group === 'Topic' ? '🏷️ Topics' : node.group;
+          currentOptgroup.label = groupLabel;
+          searchSelect.appendChild(currentOptgroup);
+        }
         const option = document.createElement("option");
         option.value = node.id;
-        option.textContent = `${node.label} (${node.group})`;
-        searchSelect.appendChild(option);
+        option.textContent = (node.name || node.label || '').replace(/\n/g, ' ');
+        currentOptgroup.appendChild(option);
       });
 
       const options = {
